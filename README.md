@@ -1,4 +1,4 @@
-# Home Automation Configuration for Home Assistant
+# Home Automation Configuration
 This repo contains the configuration and notes around my home automation setup for my Apartment using Home Assistant and a few other technologies.
 
 
@@ -96,8 +96,37 @@ These are now owned by Xiaomi, and I don't think they are fully integrated with 
 It is worth noting that these devices communicate using Bluetooh Low Energy rather than Zigbee, so your Home Assistant platform must have a Bluetooth interface, for those running HASS on the Pi3 this does just work.
 
 ### Temperature and Humidity sensors
+I have a number of the temprature and humidity sensors throughout my apartment which enables me to understand more about the temprature of the rooms.
 
-### Google Homes x 3
+Given the automation capabilities of Home Assistant, its quite simple to have automations using these sensors in which notifications or climate control actions trigger based on certain temprature events.
+
+### Xiaomi Cameras
+I have a set of 2 Xiaomi Dafang	cameras, that i have running custom firmware.
+
+I haven't used these cameras without the custom firmware as they tie in to the Xiaomi cloud / Mi Home ecosystem and i'm not overly thrilled with the security and privacy implications. It's pretty easy to flash the custom firmware yourself if you are relatively familiar with Linux.
+
+I got in early on these cameras when the Firmware was quite experimental, and it's quite impressive to see how much the custom firmware has evolved, it's support for movement, SSL and MQTT is really quite impressive. I currently use them with the ffmpeg camera support, and will likely move them over to MQTT later on once I have my head around it.
+
+More information about these cameras and the custom firmware can be found at the links below;
+
+* [Hacking a $25 IOT Camera to do more than it's worth](https://hackernoon.com/hacking-a-25-iot-camera-to-do-more-than-its-worth-41a8d4dc805c)
+* [Xiaomi Dafang Hacks - Github.com](https://github.com/EliasKotlyar/Xiaomi-Dafang-Hacks)
+
+### Daikin Air Conditioner
+Unbeknownst to me, this was actually my very first IOT purchase. When adding this Daikin AC unit to my home to help me survive the brutal Sydney summer heat, I opted to get the wifi controller to be able to control it from an application both locally and remotely. 
+
+I expected this to be pretty locked down, and unlikely to be able to be integrated into a wider automation platform and did some poking around online and 
+
+
+There is a number of related projects that I used as references when trying to understand how all this went together
+
+* https://github.com/ael-code/daikin-control
+* https://www.home-assistant.io/components/daikin/
+* https://pypi.org/project/pydaikin/
+* https://github.com/Apollon77/daikin-controller
+
+
+### Google Home and Home Assistant Cloud
 
 * 2 x Google Home Mini's
 * 1 x Google Home
@@ -106,21 +135,8 @@ Voice control via Home Assistant Cloud works a treat with vacuum, switches, ligh
 
 Mainly use this as group speakers for podcastss and music
 
-### Xiaomi Cameras
-I have a set of 2 Xiaomi Dafang	 cameras, that i have running custom firmware.
-
-* https://hackernoon.com/hacking-a-25-iot-camera-to-do-more-than-its-worth-41a8d4dc805c
-* https://github.com/EliasKotlyar/Xiaomi-Dafang-Hacks
-
-in as ffmpeg based cameras 
-
-### Daikin Air Conditioner
 
 
-https://github.com/ael-code/daikin-control
-https://www.home-assistant.io/components/daikin/
-https://pypi.org/project/pydaikin/
-https://github.com/Apollon77/daikin-controller
 
 
 ### IR Blaster
@@ -150,9 +166,6 @@ I have a Kambrook KFA837 Arctic LED Display Tower Fan Black in the bedroom, as i
 * [Here's What This Ubiquiti UniFi Stuff Is All About](https://www.troyhunt.com/heres-what-this-ubiquiti-unifi-stuff-is-all-about/)
 * [Wiring a home network from the ground-up with Ubiquiti](https://www.troyhunt.com/wiring-a-home-network-from-the-ground-up-with-ubiquiti/)
 * [Ubiquiti all the things: how I finally fixed my dodgy wifi](https://www.troyhunt.com/ubiquiti-all-the-things-how-i-finally-fixed-my-dodgy-wifi/)
-
-
-### Home Assistant Cloud
 
 ### DNS Filtering and Blocking with Pi-Hole
 I use the amazing Pi-Hole as a network wide ad blocker, as well as a way to provide DNS blocking and visibility capabilities for my network, specifically the IOT devices.
