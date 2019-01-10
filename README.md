@@ -1,7 +1,6 @@
 # Home Automation Configuration
 This repo contains the configuration and notes around my home automation setup for my Apartment using Home Assistant and a few other technologies.
 
-
 ## Equipment
 
 I currently have the following equipment configured.
@@ -115,28 +114,16 @@ More information about these cameras and the custom firmware can be found at the
 ### Daikin Air Conditioner
 Unbeknownst to me, this was actually my very first IOT purchase. When adding this Daikin AC unit to my home to help me survive the brutal Sydney summer heat, I opted to get the wifi controller to be able to control it from an application both locally and remotely. 
 
-I expected this to be pretty locked down, and unlikely to be able to be integrated into a wider automation platform and did some poking around online and 
+I expected this to be pretty locked down, and unlikely to be able to be integrated into a wider automation platform and did some poking around online and found that the local wifi communication between android and iphone applications is unauthenitcated and in plaintext which in the context of IOT is generally bad, however the benefit of this is that the API has already been extensively reverse engineered and a Python interface for it built which has been dropped into Home Assistant, making it a first class citizen that "just works" via auto discovery.
 
+To make things even better, recent changes and enhancements with this component have made it work extremely well with the Google Home climate control capability in the home application as well as voice control (I'd suggest signing up for the home assistant cloud service to make things a little easier to get working).
 
-There is a number of related projects that I used as references when trying to understand how all this went together
+There is a number of related projects that I used as references when trying to understand how all this went together, and you can check them out below if you have this equipment.
 
 * https://github.com/ael-code/daikin-control
 * https://www.home-assistant.io/components/daikin/
 * https://pypi.org/project/pydaikin/
 * https://github.com/Apollon77/daikin-controller
-
-
-### Google Home and Home Assistant Cloud
-
-* 2 x Google Home Mini's
-* 1 x Google Home
-
-Voice control via Home Assistant Cloud works a treat with vacuum, switches, light domains
-
-Mainly use this as group speakers for podcastss and music
-
-
-
 
 
 ### IR Blaster
@@ -153,9 +140,17 @@ Garbage application, does however work great with Home assistant.
 
 I have a Kambrook KFA837 Arctic LED Display Tower Fan Black in the bedroom, as it has an IR controller, i've loaded it's buttons into the IR blaster as switches, and these can be controlled via the home assistant web interface as well as google home.
 
-### Samsung TV
+### Google Home and Home Assistant Cloud
 
-### Google Chromecast
+* 2 x Google Home Mini's
+* 1 x Google Home
+* 1 x Google Chromecast
+
+Voice control via Home Assistant Cloud works a treat with vacuum, switches, light domains
+
+Mainly use this as group speakers for podcastss and music
+
+### Samsung TV
 
 ### Plex
 
