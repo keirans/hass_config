@@ -1,73 +1,106 @@
 # Home Automation Configuration
 This repo contains the configuration and notes around my home automation setup for my Apartment using Home Assistant and a few other technologies.
 
-## Equipment
-
-I currently have the following equipment configured.
-
-### Raspberry Pi 3
-I run [Home Assistant via HASS](https://www.home-assistant.io/) on a Raspberry Pi 3 and it acts as the central hub for a variety of home automation and other IOT components.
+The original configuration I had before I renovated my apartment can be found in the version 1 release of this repo.
+* [Home Automation System - v1.0](https://github.com/keirans/hass_config/releases/tag/1.0)
 
 
-### Phillips Hue Lighting
-This started the obession, I bought a few of these to tinker with, and it got me interested in all things IOT.
+## Equipment and build list
 
-At the moment, I have a mixture of;
+I currently have the following equipment and components
 
-* Light bulbs
-* Light Strips
-* Switches
-* Movement sensors
-
-The home assistant integration is very mature, and it does just work.
-
-I use the motion sensors in my living room to turn on ambient lighting when required, primarilly in winter and later at night in summer if/when required.
-
-### Xiaomi Aquara
-
-I have an Xiaomi Aquara kit which has great Home Assistant support and I use a number of the sensors in the house to measure and control various things which I'll go into a bit more detail below.
-
-If you want to understand more about these sensors and actuators there is a great overview of these products on the following Youtube video: [Xiaomi Smart Home Products Explained
-](https://www.youtube.com/watch?v=hpb-ZiQvuZ8) and the configuration steps can be found at the  following [Documentation page](https://www.home-assistant.io/components/xiaomi_aqara/)
-
-
-#### Xiaomi Smart Power Plugs
-I use these to control a heated seedling matt for germinating chilli seeds during the Winter.
-
-This plug allows me to remotely turn it on / off in the event that I need to (primarilly due to fire and safety concerns), and as I have a better grasp of the home automation landscape now, I'll use the temprature sensors I have installed to automatically turn on/off the heater when the ambient or soil temprature are below certain thresholds.
-
-Another thing I do like about these plugs is that they provide metrics on the power usage of the attached device.
+| Component | Function |
+|------------|----------|
+| <ul><li>Intel NUC Mini PC</li></ul> | <ul><li>Base OS runs Ubuntu Linux with Docker CE</li><li>Home Assistant Core running in Docker</li><li>Model: BOXNUC7CJYSAL4 (4GB + 32GB)</li></ul> |
+| <ul><li>USB Zigbee Interface</li></ul> | <ul><li>Provides Home Assistant native Zigbee device support via the ZHA Intergration</li><li>Model : HUBBZB-1</li></ul> |
+| <ul><li>Phillips HUE Bridge v2</li></ul> | <ul><li>Provides all HUE functionality</li><li>Phillips HUE Bulbs (5)</li><li>Phillips HUE Light Strips (2)</li><li>HUE Switches (6) </li><li>HUE Movement sensors (2)</li><li>IKEA Tradfi downlights (HUE Compatible) (24)</li></ul> |
+| <ul><li>Xiaomi Aquara</li></ul> | <ul><li>All devices are integrated via the Home Assistant Zigbee USB Interface (ZHA)</li><li>Door and Window Sensors (5)</li><li>Temp and Humidity Sensors (5)</li><li>Motion sensors (1)</li><li>Smart Power Plugs (1)</li></ul> |
+| <ul><li>Xiaomi Rockrobo Vacuum Cleaner</li></ul> | <ul><li>Automatic cleaning System</li></ul> |
+| <ul><li>Xiaomi Flower sensors</li></ul> | <ul><li>Light, Temprature, Water and conductivity sensors for Chilli Plants</li></ul> |
+| <ul><li>Xiaomi Dafang cameras</li></ul> | <ul><li>Internal cameras for security and monitoring running custom firmware</li></ul> |
+| <ul><li>Daikin Air Conditioner</li></ul> | <ul><li>3Kw Split system with Daikin WiFi Controller</li></ul> |
+| <ul><li>Broadcom IR Blaster</li></ul> | <ul><li>Programmable Universal Remote for control of IR Devices such as Fans</li></ul> |
+| <ul><li>Google Home Devices</li></ul> | <ul><li>Google Chromecasts</li><li>Google Home voice controlled assistants</li></ul> |
+| <ul><li>Synology NAS</li></ul> | <ul><li>Local Storage and Plex Server</li></ul> |
+| <ul><li>Unifi Network equipment</li></ul> | <ul><li>USG Firewall</li><li>AC Pro WiFi AP</li><li>Managed Switch</li><li>Cloudkey v1</li></ul> |
+| <ul><li>Nabu Casa Subscription</li></ul> | <ul><li>Remote Access, Google Home integration and other functionality</li></ul> |
 
 
-#### Xiaomi Door / Window Sensors
-I have a number of these throughout my house to allow me to see if I have left open doors and windows when I am out, this is particularly useful when a storm is coming.
+## Configuration and Integration
 
-In addtion to this, I use the following automation to turn off the air conditioning if the balcony door has been open for more than 2 minutes.
+### Home Assistant Docker Compose file
+
+I run Home Assistant Core via docker on Ubuntu using Docker Compose
+
+I map through the Bluetooth and USB Zigbee devices into the container so they can be used.
+
+I store the config dir on a volume to make upgrades and backups simple.
 
 ```
-automation:
-  - alias: "Balcony Door Open turn off AC"
-    trigger:
-      platform: state
-      entity_id: binary_sensor.door_window_sensor_158d0001d6855d
-      from: 'off'
-      to: 'on'
-      for:
-        minutes: 2
-    action:
-      service: climate.set_operation_mode
-      data:
-        entity_id: climate.daikinap62514
-        operation_mode: "off"
+version: '3'
+
+services:
+  homeassistant:
+    container_name: home-assistant
+    image: homeassistant/home-assistant:stable
+    volumes:
+      - /opt/hass/config/:/config
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+      - /dev/ttyACM0:/dev/ttyACM0
+    privileged: true
+    environment:
+      - TZ=Australia/Sydney
+    restart: always
+    network_mode: host
 ```
 
+### Pi-Hole Docker Compose file
 
-#### Xiaomi Movement and Light Sensors
-I currently don't use these for much, I stuck them near some of my Chilli Plants to measure the light levels before I had the plant sensors and found they weren't really suited for this (unsurprisingly), and as my Hue setup has motion sensors that work well for light control, I'll likely put them to other use in the future.
+I run Pi-Hole as a whole network ad blocking solution via docker on Ubuntu using Docker Compose
 
-#### Xiaomi IOT Button
-I used this to get the hang of Home Assistant automation capabilities, turning on Hue lights with Xiaomi Buttons is a good use case. I think I'll be using this to enable "Movie Mode" in my living room, in which movement sensors are disabled for say 3 hours and the lights are dimmed and set to a preset configuration.
+I also use the Pi-Hole API and Intgration to expose metrics and setup switches to control it via Home Assistant (detailed further on)
 
+```
+version: "3"
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "80:80/tcp"
+      - "443:443/tcp"
+    environment:
+      TZ: 'Australia/Sydney'
+      WEBPASSWORD: changeme
+    # Volumes store your data between container upgrades
+    volumes:
+      - '/opt/pihole/etc-pihole/:/etc/pihole/'
+      - '/opt/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
+    dns:
+      - 127.0.0.1
+      - 8.8.8.8
+    # Recommended but not required (DHCP needs NET_ADMIN)
+    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    #cap_add:
+    #  - NET_ADMIN
+    restart: unless-stopped
+```
+
+### HUE Lighting intergration and approach
+I have all HUE and HUE compatible lighting and accessories integrated directly with the HUE Bridge, and then have the Hue Bridge integrated with Home Assistant via the HUE integration. The reason I have done this is so that all the lights function as required if my Home Assistant instance is offline or is being upgraded.
+
+### Route53 Dynamic DNS
+I use the Route53 Integration to provide Dynamic DNS records for my home so i can VPN in.
+
+### Android Application for presence detection
+I use the [Home Assistant Android Application](https://play.google.com/store/apps/details?id=io.homeassistant.companion.android&hl=en_AU) in conjunction with Nabucasa to provide remote access, presence detection and phone metrics.
 
 ### Xiaomi Rockrobo Vacuum Cleaner
 I invested in this for the novelty factor, however given my apartment is a single level, it's actually amazing at keeping my place tidy, much more than I expected.
@@ -85,14 +118,19 @@ You can find more about this command on this github issue: https://github.com/dg
 
 Once this is configured, you can also voice control it using the google assistant / cloud integration as it now exposes the vacuum domain. 
 
-### Xiaomi Flower sensors
-As I mentioned above, I use the Xiaomi sensors to get some light , tempreature and other metrics for around the chilli plants that I grow both indoors and out, however one thing I found was that using these sensors really wasn't suitable for my gardening requirements, and so I picked up a few of the "Mi Flora" plant sensors.
+There is now alternative firmware you can install on this device that removes all back to base (China) communication. I am yet to try it, however likely will transition over to it.
 
-These are now owned by Xiaomi, and I don't think they are fully integrated with the Mi Home application as yet (and may never be) , and as such they use their own application to configure and use them. To say the Mi Flora application is garbage is an understatement, and gave up trying to reliably use it, opting to integrate it directly with Home Assistant on the Pi3 using the below documentation. This has been extremely stable and providing much more metrics about the health of the plants including moisture, light and fertility.
+* [Valetudo - Free your vacuum from the cloud](https://github.com/Hypfer/Valetudo)
+
+
+### Xiaomi Flower sensors
+I use the Xiaomi sensors to get some light , tempreature and other metrics for around the chilli plants that I grow both indoors and out, however one thing I found was that using these sensors really wasn't suitable for my gardening requirements, and so I picked up a few of the "Mi Flora" plant sensors.
+
+These are now owned by Xiaomi, and I don't think they are fully integrated with the Mi Home application as yet (and may never be) , and as such they use their own application to configure and use them. To say the Mi Flora application is garbage is an understatement, and gave up trying to reliably use it, opting to integrate it directly with Home Assistant on  using the below documentation. This has been extremely stable and providing much more metrics about the health of the plants including moisture, light and fertility.
 
 * https://www.home-assistant.io/components/sensor.miflora/
 
-It is worth noting that these devices communicate using Bluetooh Low Energy rather than Zigbee, so your Home Assistant platform must have a Bluetooth interface, for those running HASS on the Pi3 this does just work.
+It is worth noting that these devices communicate using Bluetooh Low Energy rather than Zigbee, so your Home Assistant platform must have a Bluetooth interface, for those running HASS on the Pi3 this does just work, in my case i pass through the NUCs Bluetooth interface into the Docker container.
 
 ### Temperature and Humidity sensors
 I have a number of the temprature and humidity sensors throughout my apartment which enables me to understand more about the temprature of the rooms.
@@ -104,7 +142,7 @@ I have a set of 2 Xiaomi Dafang	cameras, that i have running custom firmware.
 
 I haven't used these cameras without the custom firmware as they tie in to the Xiaomi cloud / Mi Home ecosystem and i'm not overly thrilled with the security and privacy implications. It's pretty easy to flash the custom firmware yourself if you are relatively familiar with Linux.
 
-I got in early on these cameras when the Firmware was quite experimental, and it's quite impressive to see how much the custom firmware has evolved, it's support for movement, SSL and MQTT is really quite impressive. I currently use them with the ffmpeg camera support, and will likely move them over to MQTT later on once I have my head around it.
+I got in early on these cameras when the Firmware was quite experimental, and it's quite impressive to see how much the custom firmware has evolved, it's support for movement, SSL and MQTT great and seems to mature with each release. I currently use them with the ffmpeg camera support, and will likely move them over to MQTT later on once I have my head around it.
 
 More information about these cameras and the custom firmware can be found at the links below;
 
@@ -133,22 +171,97 @@ This is possible because I've loaded the IR remote codes for the fan into home a
 
 What is great about this is that the switch domain is exposed to the Home Assistant cloud integration for google home, so I can now control it using google voice actions such as "OK Google - Turn on bedroom fan" and it works great.
 
-* https://www.home-assistant.io/components/switch.broadlink/
-
-
+* https://www.home-assistant.io/integrations/broadlink/
 
 ### Google Home and Home Assistant Cloud
+I use the Google Home & Assistant ecosystem for media playing, voice control and providing an alternative interface to automation through the google home android app.
+
+I have te following home devices and it all works a treat with  vacuum, switches, light and climate domains
 
 * 2 x Google Home Mini's
 * 1 x Google Home
 * 1 x Google Chromecast
 
-Voice control via Home Assistant Cloud works a treat with vacuum, switches, light domains
 
-Mainly use this as group speakers for podcastss and music
+## Automations, Scripts and Home Assistant Configurations
 
+### Pi-Hole automation
 
+I pull in the metrics from Pi-Hole using the Pi-Hole Integration, and then I setup a command line switch that lets me turn on/off the ad-blocker via it's API from the Home Assistant interface as well as via Google home (Including Voice Control)
 
+```
+pi_hole:
+  host: localhost:80
+  ssl: false
+```
+
+```
+switch:
+  -  platform: command_line
+     switches:
+       pihole_switch:
+         command_on: "/usr/bin/curl -X GET 'http://10.0.2.17/admin/api.php?enable&auth=<TOKEN>'"
+         command_off: "/usr/bin/curl -X GET 'http://10.0.2.17/admin/api.php?disable=5400&auth=<TOKEN>'"
+         command_state: "/usr/bin/curl -X GET 'http://10.0.2.17/admin/api.php?status&auth=<TOKEN>'"
+         value_template: "{{ value_json.status == 'enabled' }}"
+```
+
+### Vaccuum Metrics
+
+I pull out the Vaccuum metrics into sensors to build dashboards in the Home Assistant interface.
+
+```
+sensor:
+  - platform: template
+    sensors:
+
+      vacuum_total_cleaned_area:
+        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes["total_cleaned_area"] }}'
+        friendly_name: 'Total Cleaned Area'
+        unit_of_measurement: 'MSq'
+
+      vacuum_total_cleaning_time:
+        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes["total_cleaning_time"] }}'
+        friendly_name: 'Total Cleaning Time'
+        unit_of_measurement: 'Mins'
+
+      vacuum_cleaning_count:
+        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes["cleaning_count"] }}'
+        friendly_name: 'Total Cleaning Count'
+        unit_of_measurement: 'Cleans'
+
+      vacuum_battery_level:
+        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes["battery_level"] }}'
+        friendly_name: 'Battery Level'
+        unit_of_measurement: '%'
+
+      vacuum_fan_speed:
+        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes["fan_speed"] }}'
+        friendly_name: 'Fan Speed'
+        unit_of_measurement: ''
+```
+
+### Turn off AC when Doors are open Automations
+
+I use the following automation to turn off the air conditioning if the balcony door has been open for more than 2 minutes.
+
+```
+automation:
+  - alias: "Balcony Door Open turn off AC"
+    trigger:
+      platform: state
+      entity_id: binary_sensor.door_window_sensor_158d0001d6855d
+      from: 'off'
+      to: 'on'
+      for:
+        minutes: 2
+    action:
+      service: climate.set_operation_mode
+      data:
+        entity_id: climate.daikinap62514
+        operation_mode: "off"
+
+```
 
 
 
