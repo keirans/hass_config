@@ -4,6 +4,9 @@ This repo contains the configuration and notes around my home automation setup f
 The original configuration I had before I renovated my apartment can be found in the version 1 release of this repo.
 * [Home Automation System - v1.0](https://github.com/keirans/hass_config/releases/tag/1.0)
 
+I did an internal presentation at my work for a bit of fun that you can find the deck for below. This talks about my setup and the wider IOT ecosystem and challenges in the context of automated homes.
+
+  * [The Internet of Things and the Modern Household](docs/IOT_Workshop_Presentation.pdf)
 
 ## Equipment and build list
 
