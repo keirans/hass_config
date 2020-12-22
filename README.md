@@ -108,22 +108,11 @@ I use the [Home Assistant Android Application](https://play.google.com/store/app
 ### Xiaomi Rockrobo Vacuum Cleaner
 I invested in this for the novelty factor, however given my apartment is a single level, it's actually amazing at keeping my place tidy, much more than I expected.
 
-There are a few ways to get it integrated with Home Assistant, however the most robust way that I have found is to root it and extract the API key.
+Initally I had the devices rooted using the process below, however now I have it running the custom firmware called [Valetudo - Free your vacuum from the cloud](https://github.com/Hypfer/Valetudo). Once installed, I found that it worked perfectly, gave me more local control options and functionality as well as removing all remote communication to China.
 
-To root it, check out the presentation these guys did at CCC -  [34C3 - Unleash your smart-home devices: Vacuum Cleaning Robot Hacking](https://www.youtube.com/watch?v=uhyM-bhzFsI),and then I used their docs to root my vaccuum, and run the following commands to extract the API token to integrate it into Home Assistant.
+Once Valetudo is installed and configured with Home Assistant, you can also voice control it using the google assistant / cloud integration as it now exposes the vacuum domain. 
 
-```
-root@rockrobo:~# printf $(cat /mnt/data/miio/device.token) | xxd -p
-```
-
-You can find more about this command on this github issue: https://github.com/dgiese/dustcloud/issues/12 and there is a good review of this model on youtube here: [Xiaomi Mi Robot Vacuum Review - Raising The Bar at an Affordable Price
-](https://www.youtube.com/watch?v=eWLWO5AxAHo)
-
-Once this is configured, you can also voice control it using the google assistant / cloud integration as it now exposes the vacuum domain. 
-
-There is now alternative firmware you can install on this device that removes all back to base (China) communication. I am yet to try it, however likely will transition over to it.
-
-* [Valetudo - Free your vacuum from the cloud](https://github.com/Hypfer/Valetudo)
+I still encourage you to check out the presentation at CCC about this initial reverse engineering work, it's great -  [34C3 - Unleash your smart-home devices: Vacuum Cleaning Robot Hacking](https://www.youtube.com/watch?v=uhyM-bhzFsI),
 
 
 ### Xiaomi Flower sensors
@@ -166,7 +155,6 @@ There is a number of related projects that I used as references when trying to u
 * https://pypi.org/project/pydaikin/
 * https://github.com/Apollon77/daikin-controller
 
-
 ### Broadcom IR Blaster
 I have a Broadcom Mini 3 IR blaster that I use to turn on the Kambrook Tower Fan I have in my bedroom (KFA837 Arctic LED Display Tower Fan just incase you have this model and want to use my IR codes)
 
@@ -175,6 +163,18 @@ This is possible because I've loaded the IR remote codes for the fan into home a
 What is great about this is that the switch domain is exposed to the Home Assistant cloud integration for google home, so I can now control it using google voice actions such as "OK Google - Turn on bedroom fan" and it works great.
 
 * https://www.home-assistant.io/integrations/broadlink/
+
+
+### Xiaomi Pedestal fan
+I found that the IR control of my bedroom fan wasn't as nice as I'd like it, so I have replaced it with 2 x Xiaomi Pedestal fans that I move throughout the house.
+
+* Xiaomi Smartmi DC Conversion Pedestal Fan 2S (zhimi.fan.za4)
+* Xiaomi Mijia Frequency Conversion Floor Fan 1X (dmaker.fan.p5)
+
+These fans look great and work well, and can be controlled via [This custom component](https://github.com/syssi/xiaomi_fan)
+
+It's not perfect, however most core functionality is supported, and I'm hoping that we will see this functionality rolled into Home Assistant Core in the not too distant future.
+
 
 ### Google Home and Home Assistant Cloud
 I use the Google Home & Assistant ecosystem for media playing, voice control and providing an alternative interface to automation through the google home android app.
@@ -265,7 +265,6 @@ automation:
         operation_mode: "off"
 
 ```
-
 
 
 
