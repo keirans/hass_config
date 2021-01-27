@@ -266,7 +266,102 @@ automation:
 
 ```
 
+## Additional Notes
+
+### Integrating generic security systems
+A friend of mine had a security camera system in a home he purchased that used analog 1080P cameras back to a generic Korean branded, Chinese made DVR Style box.
+I set myself the goal of getting these cameras into home assistant and I'm documenting these here in the event that others may discover this and find it useful.
+
+The only read information about this device was what I could derive in the administration interface as per the below, and extensive searching on the internet didn't lead me to much outside some generic Korean and Chinese pages and a relatively useless user guide.
+
+| What | Value |
+|------------|----------|
+| DVR Model |  04CH / 060FPS. |
+| WEB Version | WEB_v2.7.3_1.0.0.56_140627 |
+| Mac Address Lookup |  Itx Security |
 
 
+The system itself worked well via the web interface, providing real time streams, and the mobile application Nviewer was able to discover all 4 camera streams when pointed at the device.
+
+Looking at the developer mode of the web interface, I was able to find some API endpoints similar to the below, and further googling showed that this software was common across generic camera systems being made in Asia, however I couldnt find extensive documentation about these, nor any security vulnerabilities that would lead me to gaining shell access to the device.
 
 
+* ```http://username:password@<DEVICE>/cgi-bin/webra_fcgi.fcgi?api=get_live.live.status```
+  * Return the status of the device and the current session
+* ```http://username:password@<DEVICE>/cgi-bin/webra_fcgi.fcgi?api=get_jpeg_raw&chno=<CHANNEL>```
+  * Return a JPG image from channel <CHANNEL> , in this case, there are 4 channels representing 4 cameras 0-3
+
+There was also a RTSP port set in the configuration interface, however using common ONVIF tools to try and discover the camera streams, I was unable to get these discovered.
+The next step I made was to TCP dump the communication from the mobile device and the box during setup of the Nviewer application, as I knew that it could discover the streams nicely.
+
+Doing this on my Unifi USG provided me a pcap file I ran through wireshark, however I was unable to derive the streams from this PCAP as the communication between them was encoded in a way I couldnt quite figure out. While I was thinking about this, I did some googling for other tools to handle the discovery of the streams and discovered CameraRadar.
+
+CamaraRadar is a RTSP access tool that can be used to discover and also brute force RTSP streams on a camera or security system endpoint.
+* https://github.com/Ullaakut/cameradar
+* https://hub.docker.com/r/ullaakut/cameradar
+
+As the tool is available as a docker image, I quickly pulled it down, updated the configuration files to contain my username and password combination and ran it against the endpoint. I was expecting to not get much, however it returned 2 routes that when combined into an RTSP URL and played in VLC stream worked !
+
+```
+root@ubuntu:/tmp# docker run -v /tmp:/tmp --net=host -t ullaakut/cameradar --custom-credentials="/tmp/credentials.json" -p 5554 -t 220.233.83.83
+Unable to find image 'ullaakut/cameradar:latest' locally
+latest: Pulling from ullaakut/cameradar
+<SNIP>
+Digest: sha256:ea093ec7e8bee51c150cbedffdf52f6636f7c55a595f578c82f06bc9a4c8d8a5
+Status: Downloaded newer image for ullaakut/cameradar:latest
+Loading credentials...ok
+Loading routes...ok
+Scanning the network...ok
+Attacking routes of 1 streams...
+
+ok
+Attempting to detect authentication methods of 1 streams...ok
+Attacking credentials of 1 streams...ok
+Validating that streams are accessible...ok
+Second round of attacks...ok
+Validating that streams are accessible...ok
+✖       Admin panel URL:        http://<DEVICE>/ You can use this URL to try attacking the camera's admin panel instead.
+        Available:              ✖
+        IP address:             <DEVICE>
+        RTSP port:              5554
+        Auth type:              digest
+        Username:               <redacted>
+        Password:               <redacted>
+        RTSP routes:
+                              /live/main0
+                              /live/main
+```
+
+From this, I was able to derive the following RTSP routes for all the cameras
+
+* rtsp://username:password@<DEVICE>:5554/live/main0
+* rtsp://username:password@<DEVICE>:5554/live/second0
+
+Where 0 is the ID for each camera 0 through to 3.
+
+We can then pull these cameras into Home Assistant with the following configuration file entries and display them in lovelace.
+
+```
+camera:
+  - platform: generic
+    name: Front
+    still_image_url: http://username:password@<DEVICE>/cgi-bin/webra_fcgi.fcgi?api=get_jpeg_raw&chno=0
+    stream_source: rtsp://username:password@<DEVICE>:5554/live/second0
+
+  - platform: generic
+    name: Side
+    still_image_url: http://username:password@<DEVICE>/cgi-bin/webra_fcgi.fcgi?api=get_jpeg_raw&chno=1
+    stream_source: rtsp://username:password@<DEVICE>:5554/live/second1
+
+  - platform: generic
+    name: Rear
+    still_image_url: http://username:password@<DEVICE>/cgi-bin/webra_fcgi.fcgi?api=get_jpeg_raw&chno=2
+    stream_source: rtsp://username:password@<DEVICE>:5554/live/second2
+
+  - platform: generic
+    name: Garage
+    still_image_url: http://username:password@<DEVICE>/cgi-bin/webra_fcgi.fcgi?api=get_jpeg_raw&chno=3
+    stream_source: rtsp://username:password@<DEVICE>:5554/live/second3
+```
+
+I hope this helps some other people out there trying to figure out this integration.
