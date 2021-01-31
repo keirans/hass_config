@@ -303,7 +303,7 @@ CamaraRadar is a RTSP access tool that can be used to discover and also brute fo
 As the tool is available as a docker image, I quickly pulled it down, updated the configuration files to contain my username and password combination and ran it against the endpoint. I was expecting to not get much, however it returned 2 routes that when combined into an RTSP URL and played in VLC stream worked !
 
 ```
-root@ubuntu:/tmp# docker run -v /tmp:/tmp --net=host -t ullaakut/cameradar --custom-credentials="/tmp/credentials.json" -p 5554 -t 220.233.83.83
+root@ubuntu:/tmp# docker run -v /tmp:/tmp --net=host -t ullaakut/cameradar --custom-credentials="/tmp/credentials.json" -p 5554 -t <DEVICE>
 Unable to find image 'ullaakut/cameradar:latest' locally
 latest: Pulling from ullaakut/cameradar
 <SNIP>
